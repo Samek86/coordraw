@@ -44,51 +44,110 @@ Coordraw는 사람의 창의성과 AI 지원 워크플로우를 연결하는 **�
 
 ### 사전 요구사항
 
-- **Windows** 10/11
-- **.NET Framework 4.8** (최신 Windows에 사전 설치됨)
-- **Visual Studio 2019+** (소스에서 빌드용)
-- **WebView2 Runtime** ([다운로드](https://developer.microsoft.com/en-us/microsoft-edge/webview2/))
+**CLI 전용 워크플로우:**
+- **.NET Framework 4.8** (최신 Windows에 사전 설치, Linux는 Mono를 통해 가능)
 - **Node.js** ≥ 22.12 (Eraser CLI 렌더링용)
 - **Chrome/Chromium** (렌더링용)
 - **Noto Sans CJK JP** 시스템 폰트 (일본어 라벨용)
 
+**GUI (Windows 데스크톱 전용):**
+- **Windows** 10/11
+- **Visual Studio 2019+** (소스에서 빌드용)
+- **WebView2 Runtime** ([다운로드](https://developer.microsoft.com/en-us/microsoft-edge/webview2/))
+
 #### Noto Sans CJK JP 설치
 
 **Windows:**  
-[Google Fonts](https://fonts.google.com/noto/specimen/Noto+Sans+JP)에서 다운로드 및 설치
+[Google Fonts](https://fonts.google.com/noto/specimen/Noto+Sans+JP)에서 다운로드하여 우클릭 → 설치
 
-#### Eraser Diagrams CLI 설치
+**Linux:**  
+```bash
+sudo apt-get install fonts-noto-cjk
+# 또는
+sudo yum install google-noto-sans-cjk-jp-fonts
+```
+
+#### 의존성 설치
 
 ```bash
 cd coordraw
 npm install
 ```
 
-로컬에 `@eraserlabs/diagrams-cli`를 설치합니다.
+로컬에 `@eraserlabs/diagrams-cli` 및 `@eraserlabs/diagrams`를 설치합니다.
 
-### 빌드 및 실행
+### CLI 사용법 (비GUI 워크플로우)
+
+**DSL을 JSON으로 컴파일:**
+```bash
+# dotnet 사용
+dotnet run --project src/Coordraw.Cli/Coordraw.Cli.csproj -- compile examples/demo-japanese.crd -o output.json
+
+# 또는 빌드 후
+./src/Coordraw.Cli/bin/Release/coordraw.exe compile examples/demo-japanese.crd -o output.json
+
+# 또는 npm 스크립트 사용
+npm run compile:demo
+```
+
+**DSL 유효성 검사:**
+```bash
+dotnet run --project src/Coordraw.Cli/Coordraw.Cli.csproj -- validate examples/demo-japanese.crd
+# 또는: npm run validate:demo
+```
+
+**PNG로 렌더링:**
+```bash
+dotnet run --project src/Coordraw.Cli/Coordraw.Cli.csproj -- render examples/demo-japanese.crd -o output.png --fonts examples/fonts.json
+# 또는: npm run render:demo
+```
+
+**모든 CLI 명령:**
+```bash
+coordraw compile <file.crd> -o <output.json>    # Eraser JSON으로 컴파일
+coordraw validate <file.crd>                     # 구문 유효성 검사
+coordraw render <file.crd> -o <output.png>       # 컴파일 + 렌더링
+coordraw help                                    # 도움말 표시
+```
+
+### 소스에서 빌드
 
 ```bash
 git clone https://github.com/Samek86/coordraw.git
 cd coordraw
 npm install
 
+# 솔루션 빌드
+msbuild Coordraw.sln /p:Configuration=Release
+
+# CLI 실행 파일: src\Coordraw.Cli\bin\Release\coordraw.exe
+```
+
+### GUI (Windows 데스크톱) - 선택사항
+
+**참고:** GUI (`Coordraw.App`)는 데스크톱 개발자가 소유한 WPF 데스크톱 스캐폴드입니다. 위의 비GUI CLI 워크플로우는 프로덕션 준비가 완료되었으며 완전히 작동합니다.
+
+**GUI 빌드 및 실행:**
+```bash
 # Visual Studio에서 열기
 start Coordraw.sln
 
 # 빌드 및 실행 (F5)
 ```
 
-또는 명령줄에서 빌드:
-
-```bash
-msbuild Coordraw.sln /p:Configuration=Release
-```
-
 실행 파일: `src\Coordraw.App\bin\Release\Coordraw.exe`
 
 ### 일본어 데모 실행
 
+**CLI:**
+```bash
+npm run validate:demo
+npm run compile:demo
+npm run render:demo
+# 출력: examples/demo-japanese.png
+```
+
+**GUI (가능한 경우):**
 1. `Coordraw.exe` 실행
 2. **File → Open DSL...**
 3. `examples\demo-japanese.crd` 로드
@@ -175,7 +234,11 @@ coordraw/
 │   │   ├── Parser/
 │   │   ├── Compiler/
 │   │   └── Coordraw.Core.csproj
-│   └── Coordraw.App/          # WPF 애플리케이션
+│   ├── Coordraw.Cli/          # 콘솔 CLI (compile/render/validate)
+│   │   ├── Commands/
+│   │   ├── Program.cs
+│   │   └── Coordraw.Cli.csproj
+│   └── Coordraw.App/          # WPF 애플리케이션 (GUI 스캐폴드)
 │       ├── wwwroot/           # WebView2 캔버스
 │       │   ├── canvas.html
 │       │   ├── canvas.css
@@ -184,11 +247,14 @@ coordraw/
 │       ├── MainWindow.xaml.cs
 │       └── Coordraw.App.csproj
 ├── tests/
-│   └── Coordraw.Core.Tests/   # 단위 테스트
+│   └── Coordraw.Core.Tests/   # NUnit 단위 테스트
+│       ├── ParserTests.cs
+│       ├── CompilerTests.cs
+│       └── Coordraw.Core.Tests.csproj
 ├── examples/
-│   ├── demo-japanese.crd
-│   ├── simple.crd
-│   └── fonts.json
+│   ├── demo-japanese.crd      # 일본어 예제
+│   ├── simple.crd             # 간단한 예제
+│   └── fonts.json             # Noto Sans CJK JP 설정
 ├── Coordraw.sln
 ├── package.json               # Eraser CLI 도구
 └── README.md
@@ -197,10 +263,12 @@ coordraw/
 ### 기술 스택
 
 - **언어:** C# (.NET Framework 4.8)
-- **GUI:** WPF (Windows Presentation Foundation)
+- **CLI:** 콘솔 앱 (Coordraw.Cli)
+- **GUI (선택사항):** WPF (Windows Presentation Foundation)
 - **임베디드 브라우저:** WebView2
 - **캔버스:** HTML/CSS/JavaScript (드래그/크기 조정)
 - **JSON:** Newtonsoft.Json
+- **테스팅:** NUnit 3.14
 - **렌더링:** @eraserlabs/diagrams-cli (Node.js CLI)
 - **폰트:** Noto Sans CJK JP (시스템 폰트)
 
@@ -212,9 +280,27 @@ Visual Studio에서 `Coordraw.sln`을 열고 빌드(F6). 또는 MSBuild 사용:
 msbuild Coordraw.sln /p:Configuration=Release
 ```
 
+**빌드 출력:**
+- CLI: `src/Coordraw.Cli/bin/Release/coordraw.exe`
+- Core 라이브러리: `src/Coordraw.Core/bin/Release/Coordraw.Core.dll`
+- GUI (선택사항): `src/Coordraw.App/bin/Release/Coordraw.exe`
+
 ### 테스트
 
-파서 및 컴파일러용 단위 테스트 (NUnit/xUnit - 향후 버전에 추가 예정).
+NUnit으로 단위 테스트 실행:
+
+```bash
+# Visual Studio Test Explorer 사용, 또는:
+dotnet test
+
+# 또는 MSBuild + vstest.console.exe 사용
+msbuild Coordraw.sln /t:Build /p:Configuration=Debug
+vstest.console.exe tests\Coordraw.Core.Tests\bin\Debug\Coordraw.Core.Tests.dll
+```
+
+**테스트 커버리지:**
+- Parser: 일본어 DSL, 그룹, 아이콘, 엣지, 주석, 유효성 검사
+- Compiler: JSON 출력, containerId, 색상 매핑, 유효성 검사
 
 ## 폰트 구성
 

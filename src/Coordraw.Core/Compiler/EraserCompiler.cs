@@ -22,10 +22,12 @@ namespace Coordraw.Core.Compiler
         };
 
         private Dictionary<string, GroupNode> _groupMap;
+        private List<string> _validationErrors;
 
         public EraserDiagram Compile(DiagramNode diagram)
         {
             _groupMap = new Dictionary<string, GroupNode>();
+            _validationErrors = new List<string>();
 
             // Build group map
             foreach (var child in diagram.Children.OfType<GroupNode>())
@@ -40,7 +42,17 @@ namespace Coordraw.Core.Compiler
                 if (child is BoxNode box)
                     result.Entities.Add(CompileBox(box));
                 else if (child is GroupNode group)
+                {
                     result.Entities.Add(CompileGroup(group));
+                    // Compile children of groups
+                    foreach (var groupChild in group.Children)
+                    {
+                        if (groupChild is BoxNode childBox)
+                            result.Entities.Add(CompileBox(childBox));
+                        else if (groupChild is IconNode childIcon)
+                            result.Entities.Add(CompileIcon(childIcon));
+                    }
+                }
                 else if (child is IconNode icon)
                     result.Entities.Add(CompileIcon(icon));
                 else if (child is EdgeNode edge)
@@ -50,8 +62,93 @@ namespace Coordraw.Core.Compiler
             return result;
         }
 
+        public List<string> Validate(DiagramNode diagram)
+        {
+            var errors = new List<string>();
+            var nodeIds = new HashSet<string>();
+
+            void ValidateElement(DiagramElement element)
+            {
+                if (string.IsNullOrEmpty(element.Id))
+                {
+                    errors.Add("Element missing ID");
+                    return;
+                }
+
+                if (nodeIds.Contains(element.Id))
+                {
+                    errors.Add($"Duplicate ID: {element.Id}");
+                }
+                nodeIds.Add(element.Id);
+
+                if (element is BoxNode box)
+                {
+                    if (string.IsNullOrEmpty(box.Label))
+                        errors.Add($"Box '{box.Id}' missing label");
+                    if (box.Size.Width <= 0)
+                        errors.Add($"Box '{box.Id}' has invalid width");
+                    if (box.Size.Height <= 0)
+                        errors.Add($"Box '{box.Id}' has invalid height");
+                }
+                else if (element is GroupNode group)
+                {
+                    if (string.IsNullOrEmpty(group.Title))
+                        errors.Add($"Group '{group.Id}' missing title");
+                    if (group.Size.Width <= 0)
+                        errors.Add($"Group '{group.Id}' has invalid width");
+                    if (group.Size.Height <= 0)
+                        errors.Add($"Group '{group.Id}' has invalid height");
+
+                    foreach (var child in group.Children)
+                        ValidateElement(child);
+                }
+                else if (element is IconNode icon)
+                {
+                    if (string.IsNullOrEmpty(icon.Icon))
+                        errors.Add($"Icon '{icon.Id}' missing icon type");
+                    if (string.IsNullOrEmpty(icon.Label))
+                        errors.Add($"Icon '{icon.Id}' missing label");
+                }
+            }
+
+            foreach (var child in diagram.Children)
+            {
+                if (child is EdgeNode edge)
+                {
+                    if (!nodeIds.Contains(edge.From))
+                        errors.Add($"Edge references unknown 'from' node: {edge.From}");
+                    if (!nodeIds.Contains(edge.To))
+                        errors.Add($"Edge references unknown 'to' node: {edge.To}");
+                }
+                else
+                {
+                    ValidateElement(child);
+                }
+            }
+
+            foreach (var child in diagram.Children.OfType<EdgeNode>())
+            {
+                if (!nodeIds.Contains(child.From))
+                    errors.Add($"Edge references unknown 'from' node: {child.From}");
+                if (!nodeIds.Contains(child.To))
+                    errors.Add($"Edge references unknown 'to' node: {child.To}");
+            }
+
+            return errors;
+        }
+
         private EraserShape CompileBox(BoxNode node)
         {
+            string containerId = null;
+            foreach (var kvp in _groupMap)
+            {
+                if (kvp.Value.Children.Any(c => c.Id == node.Id))
+                {
+                    containerId = kvp.Key;
+                    break;
+                }
+            }
+
             return new EraserShape
             {
                 Id = node.Id,
@@ -63,13 +160,14 @@ namespace Coordraw.Core.Compiler
                 {
                     new EraserText { Text = node.Label, Typeface = "clean", FontSize = 14 }
                 },
+                ContainerId = containerId,
                 Color = MapColor(node.Color)
             };
         }
 
         private EraserGroup CompileGroup(GroupNode node)
         {
-            return new EraserGroup
+            var group = new EraserGroup
             {
                 Id = node.Id,
                 X = node.Position.X,
@@ -82,6 +180,8 @@ namespace Coordraw.Core.Compiler
                 },
                 Color = MapColor(node.Color)
             };
+
+            return group;
         }
 
         private EraserIcon CompileIcon(IconNode node)
