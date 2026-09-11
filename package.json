@@ -8,10 +8,16 @@
     "node": ">=22.12.0"
   },
   "scripts": {
-    "install-eraser": "npm install @eraserlabs/diagrams-cli@0.1.0",
-    "render": "eraser-diagrams-cli"
+    "compile:demo": "dotnet run --project src/Coordraw.Cli/Coordraw.Cli.csproj -- compile examples/demo-japanese.crd -o examples/demo-japanese.json",
+    "compile:simple": "dotnet run --project src/Coordraw.Cli/Coordraw.Cli.csproj -- compile examples/simple.crd -o examples/simple.json",
+    "render:demo": "dotnet run --project src/Coordraw.Cli/Coordraw.Cli.csproj -- render examples/demo-japanese.crd -o examples/demo-japanese.png --fonts examples/fonts.json",
+    "render:simple": "dotnet run --project src/Coordraw.Cli/Coordraw.Cli.csproj -- render examples/simple.crd -o examples/simple.png",
+    "validate:demo": "dotnet run --project src/Coordraw.Cli/Coordraw.Cli.csproj -- validate examples/demo-japanese.crd",
+    "validate:simple": "dotnet run --project src/Coordraw.Cli/Coordraw.Cli.csproj -- validate examples/simple.crd",
+    "test": "echo 'Run tests with: dotnet test or msbuild + vstest.console.exe'"
   },
   "dependencies": {
+    "@eraserlabs/diagrams": "^0.3.0",
     "@eraserlabs/diagrams-cli": "^0.1.0"
   }
 }
