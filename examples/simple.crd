@@ -1,0 +1,8 @@
+diagram "Simple Microservices"
+
+box frontend label="Frontend" x=50 y=100 w=120 h=60 color=blue
+box backend label="Backend API" x=250 y=100 w=140 h=60 color=green
+box database label="PostgreSQL" x=470 y=100 w=120 h=60 color=purple
+
+edge frontend -> backend label="REST"
+edge backend -> database label="SQL"

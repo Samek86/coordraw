@@ -1,0 +1,32 @@
+{
+  "name": "@coordraw/compiler",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Coordraw DSL to Eraser Diagrams compiler",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "coordraw": "./dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "@coordraw/dsl": "workspace:*",
+    "@eraserlabs/diagrams": "^0.1.0",
+    "@eraserlabs/diagrams-cli": "^0.1.0",
+    "commander": "^12.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "typescript": "^5.7.3",
+    "vitest": "^2.1.8"
+  }
+}
