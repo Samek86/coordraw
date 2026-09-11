@@ -1,0 +1,14 @@
+diagram "本番環境アーキテクチャ"
+
+box client label="クライアント" x=40 y=140 w=140 h=70 color=green
+
+group prod title="本番環境" x=200 y=40 w=520 h=280 color=blue
+  icon api icon=server label="注文API" x=280 y=130
+  icon db icon=postgres label="Postgres" x=520 y=130
+end
+
+icon readonly icon=database label="読み取り" x=520 y=300 color=purple
+
+edge client -> api label="HTTPS"
+edge api -> db label="書き込み" style=solid
+edge api -> readonly label="読み取り" style=dashed

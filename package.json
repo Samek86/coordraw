@@ -1,0 +1,17 @@
+{
+  "name": "coordraw-tooling",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Tooling for Eraser Diagrams CLI dependency",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "install-eraser": "npm install @eraserlabs/diagrams-cli@0.1.0",
+    "render": "eraser-diagrams-cli"
+  },
+  "dependencies": {
+    "@eraserlabs/diagrams-cli": "^0.1.0"
+  }
+}

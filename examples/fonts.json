@@ -1,0 +1,19 @@
+{
+  "roles": {
+    "rough": "Noto Sans CJK JP",
+    "clean": "Noto Sans CJK JP",
+    "mono": "Noto Sans CJK JP"
+  },
+  "faces": [
+    {
+      "kind": "system",
+      "family": "Noto Sans CJK JP"
+    }
+  ],
+  "fallbacks": {
+    "rough": "sans-serif",
+    "clean": "sans-serif",
+    "mono": "monospace"
+  },
+  "throwOnFontFail": false
+}

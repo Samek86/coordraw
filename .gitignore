@@ -1,0 +1,12 @@
+node_modules/
+bin/
+obj/
+*.user
+*.suo
+.vs/
+*.log
+.DS_Store
+.env
+.env.local
+out/
+*.csproj.user
