@@ -1,8 +1,12 @@
 node_modules/
-dist/
+bin/
+obj/
+*.user
+*.suo
+.vs/
 *.log
 .DS_Store
 .env
 .env.local
 out/
-*.tsbuildinfo
+*.csproj.user
